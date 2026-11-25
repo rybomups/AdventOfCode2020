@@ -4,13 +4,14 @@ CC_FLAGS = -outputdir $(BUILD_DIR) --make -Wall
 
 # === Files ===
 BASE_EXT = hs
-BASE_DIR = days\Day$(DAY)
+SOURCE_DIR = days
+BASE_DIR = $(SOURCE_DIR)/Day$(DAY)
 BUILD_DIR = build
 FILE_TEMPLATE = FileTemplate.$(BASE_EXT)
-SOURCE_FILE = $(BASE_DIR)\day$(DAY)_p$(PART)
-SOURCE_FILE_P1 = $(BASE_DIR)\day$(DAY)_p1
-INPUT_FILE = $(BASE_DIR)\day$(DAY).txt
-INPUT_FILE_WARMUP = $(BASE_DIR)\day$(DAY)_warmup.txt
+SOURCE_FILE = $(BASE_DIR)/day$(DAY)_p$(PART)
+SOURCE_FILE_P1 = $(BASE_DIR)/day$(DAY)_p1
+INPUT_FILE = $(BASE_DIR)/day$(DAY).txt
+INPUT_FILE_WARMUP = $(BASE_DIR)/day$(DAY)_warmup.txt
 
 ENV_FILE = .env
 FETCH_INPUT_SCRIPT = fetchInput.js
@@ -41,14 +42,37 @@ warmup: $(SOURCE_FILE)
 	@echo === Done ===
 
 new:
-ifeq ($(PART), 1)
+ifeq ($(OS), Windows_NT)
+
+  # Windows cmd
+  ifeq ($(PART), 1)
 	-mkdir $(BASE_DIR)
 	-if not exist $(SOURCE_FILE).$(BASE_EXT) copy $(FILE_TEMPLATE) $(SOURCE_FILE).$(BASE_EXT)
 	-if not exist $(INPUT_FILE)              node --env-file=$(ENV_FILE) $(FETCH_INPUT_SCRIPT) $(DAY) > $(INPUT_FILE)
 	-if not exist $(INPUT_FILE_WARMUP)       copy nul $(INPUT_FILE_WARMUP)
-else
+  else
 	-if not exist $(SOURCE_FILE).$(BASE_EXT) copy $(SOURCE_FILE_P1).$(BASE_EXT) $(SOURCE_FILE).$(BASE_EXT)
+  endif
+  
+else
+
+  # Linux
+  ifeq ($(PART), 1)
+	-mkdir $(BASE_DIR)
+	-if [ ! -f $(SOURCE_FILE).$(BASE_EXT) ]; then cp $(FILE_TEMPLATE) $(SOURCE_FILE).$(BASE_EXT); fi
+	-if [ ! -f $(INPUT_FILE) ];              then node --env-file=$(ENV_FILE) $(FETCH_INPUT_SCRIPT) $(DAY) > $(INPUT_FILE); fi
+	-if [ ! -f $(INPUT_FILE_WARMUP) ];       then touch $(INPUT_FILE_WARMUP); fi
+  else
+	-if [ ! -f $(SOURCE_FILE).$(BASE_EXT) ]; then cp $(SOURCE_FILE_P1).$(BASE_EXT) $(SOURCE_FILE).$(BASE_EXT); fi
+  endif
+
 endif
 
 clean:
+ifeq ($(OS), Windows_NT)
 	-del /s /f /q *.exe $(BUILD_DIR)\*
+else
+	-rm -rf *.exe $(BUILD_DIR)/*
+	-find $(SOURCE_DIR) -type f -executable -exec rm {} +
+endif
+
