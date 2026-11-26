@@ -30,3 +30,4 @@ main = do
                 putStrLn $ "File " ++ fileName ++ " does not exist."
 
         _            -> putStrLn $ "Usage: " ++ progName ++ " <filename>"
+
