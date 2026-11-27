@@ -1,4 +1,4 @@
-.vscode
-.env
-build/*
 *.exe
+.env
+.vscode
+build/*

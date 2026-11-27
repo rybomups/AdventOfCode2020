@@ -40,7 +40,6 @@ nextGeneration :: SeatArrangement -> SeatArrangement
 nextGeneration chart = _nextGeneration_rec chart (0, 0)
 
 _nextGeneration_rec :: SeatArrangement -> (Int, Int) -> SeatArrangement
-_nextGeneration_rec [] _ = []
 _nextGeneration_rec chart pos@(x, y)
     | y >= length chart        = chart
     | x >= length (chart !! 0) = _nextGeneration_rec chart (0, y + 1)
@@ -48,19 +47,24 @@ _nextGeneration_rec chart pos@(x, y)
         Floor    -> goNext
         Empty    -> if (adjOccupation == 0) then replaceAt pos Occupied goNext 
                     else goNext
-        Occupied -> if (adjOccupation >= 4) then replaceAt pos Empty goNext
+        Occupied -> if (adjOccupation >= 5) then replaceAt pos Empty goNext
                     else goNext
     where chartAt x' y' = (chart !? y') >>= (!? x')
           goNext = _nextGeneration_rec chart (x + 1, y)
-          adjOccupation = sum $ map (fromEnum . (==(Just Occupied))) 
-            [chartAt (x + dx) (y + dy) 
-                | dx <- [-1..1], dy <- [-1..1]
-                , (dx, dy) /= (0, 0)]
           replaceAt (x', y') status arrangement = 
             let (befRow, currRow : aftRow) = splitAt y' arrangement
                 (befCol, _ : aftCol) = splitAt x' currRow
             in (befRow ++ [befCol ++ [status] ++ aftCol] ++ aftRow)
-
+          adjOccupation = sum $ map (fromEnum . (==(Just Occupied))) 
+            [findInDir (x, y) (dx, dy)
+                | dx <- [-1..1], dy <- [-1..1]
+                , (dx, dy) /= (0, 0)]
+          findInDir (x', y') dir@(dx, dy) = let nx = x' + dx
+                                                ny = y' + dy
+                                                nc = chartAt nx ny
+                                            in if nc == (Just Floor) then
+                                                findInDir (nx, ny) dir
+                                            else nc
 
 
 -- ====================================
